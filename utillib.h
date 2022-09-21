@@ -1,5 +1,4 @@
 //===========================================================================
-//------------------+------------------+------------------+------------------
 //
 // Utility Library
 // Copyright (c) 2022 Joshua Lee Ockert <torstenvl@gmail.com>
@@ -14,11 +13,9 @@
 // purpose is hereby granted, provided this notice appears in all copies.
 //---------------------------------------------------------------------------
 // You may instead license this work under the MIT or Apache 2.0 licenses. 
-// See the LICENSE file or visit https://apache.org/licenses/LICENSE-2.0
-// 
+// https://opensource.org/licenses/MIT https://www.apache.org/licenses/
 // SPDX-License-Identifier: ISC OR MIT OR Apache-2.0
 //
-//------------------+------------------+------------------+------------------
 //===========================================================================
 
 #ifndef UTILLIB_H__
@@ -65,15 +62,37 @@
   #endif
 #endif
 #if (!defined( CC_CLANG ) && !defined( CC_GCC ) && !defined( CC_MSVCPP ))
-  #if defined( __GNUC__ )
-    #define CC_GCC
-  #elif defined( __clang__ )
+  #if defined( __clang__ )
     #define CC_CLANG
+  #elif defined( __GNUC__ )
+    #define CC_GCC
   #elif defined( _MSC_VER )
     #define CC_MSVCPP
   #elif defined(__MINGW32__) || defined(__MINGW64__)
     #define CC_MINGW
   #endif
+#endif
+
+
+
+//===========================================================================
+//                 Per-compiler pragma string definitions
+//===========================================================================
+#if defined( CC_CLANG )
+  #define PRAGMADIAGPUSH     "clang diagnostic push"
+  #define PRAGMADIAGPOP      "clang diagnostic pop"
+  #define PRAGMADIAGFORMAT   "clang diagnostic ignored \"-Wformat\""
+  #define PRAGMADIAGFMTLIT   "clang diagnostic ignored \"-Wformat-nonliteral\""
+#elif defined( CC_GCC )
+  #define PRAGMADIAGPUSH     "gcc diagnostic push"
+  #define PRAGMADIAGPOP      "gcc diagnostic pop"
+  #define PRAGMADIAGFORMAT   "gcc diagnostic ignored \"-Wformat\""
+  #define PRAGMADIAGFMTLIT   "gcc diagnostic ignored \"-Wformat-nonliteral\""
+#elif defined( CC_MSVCPP )
+  #define PRAGMADIAGPUSH     "warning( push )"
+  #define PRAGMADIAGPOP      "warning( pop )"
+  #define PRAGMADIAGFORMAT   "warning( disable : 4477 )"
+  #define PRAGMADIAGFMTLIT   "warning( disable : 4774 )"
 #endif
 
 
@@ -123,47 +142,42 @@
   #define ul__VARTRACE(x)   ((void)0)
 #else
   #define ul__DBUG(...) (ul__LOG(__VA_ARGS__))
-  #define ul__VARTRACE(x) _Pragma("clang diagnostic push") \
-                      _Pragma("clang diagnostic ignored \"-Wformat\"") \
-                      _Pragma("gcc diagnostic push") \
-                      _Pragma("gcc diagnostic ignored \"-Wformat\"") \
-                      _Pragma("warning( push )")\
-                      _Pragma("warning( disable : 4477 )")\
-                      _Generic((x),\
-               _Bool: fprintf(stderr,"%s:%d %s=%s\n",\
-                                     __FILE__,__LINE__,#x,(x)?"true":"false"),\
-                char: fprintf(stderr,"%s:%d %s=%c\n",__FILE__,__LINE__,#x,x),\
-         signed char: fprintf(stderr,"%s:%d %s=%c\n",__FILE__,__LINE__,#x,x),\
-       unsigned char: fprintf(stderr,"%s:%d %s=%c\n",__FILE__,__LINE__,#x,x),\
-                 int: fprintf(stderr,"%s:%d %s=%d\n",__FILE__,__LINE__,#x,x),\
-        unsigned int: fprintf(stderr,"%s:%d %s=%u\n",__FILE__,__LINE__,#x,x),\
-                long: fprintf(stderr,"%s:%d %s=%ld\n",__FILE__,__LINE__,#x,x),\
+  #define ul__VARTRACE(x)                                                      \
+                      _Pragma(PRAGMADIAGPUSH)                                  \
+                      _Pragma(PRAGMADIAGFORMAT)                                \
+                      _Generic((x),                                            \
+               _Bool: fprintf(stderr,"%s:%d %s=%s\n",                          \
+                                     __FILE__,__LINE__,#x,(x)?"true":"false"), \
+                char: fprintf(stderr,"%s:%d %s=%c\n",__FILE__,__LINE__,#x,x),  \
+         signed char: fprintf(stderr,"%s:%d %s=%c\n",__FILE__,__LINE__,#x,x),  \
+       unsigned char: fprintf(stderr,"%s:%d %s=%c\n",__FILE__,__LINE__,#x,x),  \
+                 int: fprintf(stderr,"%s:%d %s=%d\n",__FILE__,__LINE__,#x,x),  \
+        unsigned int: fprintf(stderr,"%s:%d %s=%u\n",__FILE__,__LINE__,#x,x),  \
+                long: fprintf(stderr,"%s:%d %s=%ld\n",__FILE__,__LINE__,#x,x), \
            long long: fprintf(stderr,"%s:%d %s=%lld\n",__FILE__,__LINE__,#x,x),\
-       unsigned long: fprintf(stderr,"%s:%d %s=%lu\n",__FILE__,__LINE__,#x,x),\
+       unsigned long: fprintf(stderr,"%s:%d %s=%lu\n",__FILE__,__LINE__,#x,x), \
   unsigned long long: fprintf(stderr,"%s:%d %s=%llu\n",__FILE__,__LINE__,#x,x),\
-               float: fprintf(stderr,"%s:%d %s=%f\n",__FILE__,__LINE__,#x,x),\
-              double: fprintf(stderr,"%s:%d %s=%f\n",__FILE__,__LINE__,#x,x),\
-         long double: fprintf(stderr,"%s:%d %s=%f\n",__FILE__,__LINE__,#x,x),\
-               char*: fprintf(stderr,(x)?"%s:%d %s=\"%s\"\n":"%s:%d %s=%s\n",\
-                                         __FILE__,__LINE__,#x,x),\
-        signed char*: fprintf(stderr,(x)?"%s:%d %s=\"%s\"\n":"%s:%d %s=%s\n",\
-                                         __FILE__,__LINE__,#x,x),\
-      unsigned char*: fprintf(stderr,(x)?"%s:%d %s=\"%s\"\n":"%s:%d %s=%s\n",\
-                                         __FILE__,__LINE__,#x,x),\
-             default: fprintf(stderr,"%s:%d %s is an unknown type; first eight\
- bytes are 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n",\
-                                     __FILE__,__LINE__,#x,\
-                                     (unsigned char)((unsigned char *)&x + 0),\
-                                     (unsigned char)((unsigned char *)&x + 1),\
-                                     (unsigned char)((unsigned char *)&x + 2),\
-                                     (unsigned char)((unsigned char *)&x + 3),\
-                                     (unsigned char)((unsigned char *)&x + 4),\
-                                     (unsigned char)((unsigned char *)&x + 5),\
-                                     (unsigned char)((unsigned char *)&x + 6),\
-                                     (unsigned char)((unsigned char *)&x + 7))\
-                      _Pragma("warning( pop )")\
-                      _Pragma("gcc diagnostic pop")\
-                      _Pragma("clang diagnostic pop"))
+               float: fprintf(stderr,"%s:%d %s=%f\n",__FILE__,__LINE__,#x,x),  \
+              double: fprintf(stderr,"%s:%d %s=%f\n",__FILE__,__LINE__,#x,x),  \
+         long double: fprintf(stderr,"%s:%d %s=%f\n",__FILE__,__LINE__,#x,x),  \
+               char*: fprintf(stderr,(x)?"%s:%d %s=\"%s\"\n":"%s:%d %s=%s\n",  \
+                                         __FILE__,__LINE__,#x,x),              \
+        signed char*: fprintf(stderr,(x)?"%s:%d %s=\"%s\"\n":"%s:%d %s=%s\n",  \
+                                         __FILE__,__LINE__,#x,x),              \
+      unsigned char*: fprintf(stderr,(x)?"%s:%d %s=\"%s\"\n":"%s:%d %s=%s\n",  \
+                                         __FILE__,__LINE__,#x,x),              \
+             default: fprintf(stderr,"%s:%d %s is an unknown type; first eight"\
+ "bytes are 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n",              \
+                                     __FILE__,__LINE__,#x,                     \
+                                     (unsigned char)((unsigned char *)&x + 0), \
+                                     (unsigned char)((unsigned char *)&x + 1), \
+                                     (unsigned char)((unsigned char *)&x + 2), \
+                                     (unsigned char)((unsigned char *)&x + 3), \
+                                     (unsigned char)((unsigned char *)&x + 4), \
+                                     (unsigned char)((unsigned char *)&x + 5), \
+                                     (unsigned char)((unsigned char *)&x + 6), \
+                                     (unsigned char)((unsigned char *)&x + 7)) \
+                      _Pragma(PRAGMADIAGPOP)
 #endif
 
 
@@ -207,13 +221,10 @@ static inline int ul__diefunc(size_t line, const char *function,
     fprintf(stderr, "Died: line %zu (function %s)\n", line, function);
     
     va_start(args, format);
-    _Pragma("gcc diagnostic push")
-    _Pragma("gcc diagnostic ignored \"-Wformat-nonliteral\"")
-    _Pragma("clang diagnostic push")
-    _Pragma("clang diagnostic ignored \"-Wformat-nonliteral\"")
+    _Pragma(PRAGMADIAGPUSH)
+    _Pragma(PRAGMADIAGFMTLIT)
     vfprintf(stderr, format, args);
-    _Pragma("clang diagnostic pop")
-    _Pragma("gcc diagnostic pop")
+    _Pragma(PRAGMADIAGPOP)
     va_end(args);
 
     fprintf(stderr, "\n\n\n");
