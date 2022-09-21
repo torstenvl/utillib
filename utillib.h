@@ -25,9 +25,16 @@
 #include <string.h>
 #include <limits.h>
 
+#ifdef NDEBUGUL
+  #define UL__NO_DEBUG
+#endif 
+#ifdef NDEBUG
+  #define UL__NO_DEBUG
+#endif 
 
-// #define UL__NO_DEBUG
+#define UL__NO_DEBUG
 // #define UL__NEED_STRDUP
+// #define UL__NEED_STACKTRACE
 
 // #define UL__CROWDED_NAMESPACE
 #ifndef UL__CROWDED_NAMESPACE
@@ -57,11 +64,18 @@
   #endif
 #endif
 
-
-
+#define ul__STACKTRACE(x) ((void)0)
 #ifndef UL__NO_DEBUG
-#define ul__STACKTRACE(x) (fprintf(stderr,"%sing %s()\n",\
-                                     (x==1)?"Enter":"Exit", __func__))
+  #ifdef UL__NEED_STACKTRACE
+    #undef ul__STACKTRACE
+    #define ul__STACKTRACE(x) ul__stacktracefunc(x, __func__)
+  #endif
+#endif
+
+#ifdef UL__NO_DEBUG
+#define ul__DBUG(...)     ((void)0)
+#define ul__VARTRACE(x)   ((void)0)
+#else
 #define ul__DBUG(...) (ul__LOG(__VA_ARGS__))
 #define ul__VARTRACE(x) _Pragma("clang diagnostic push") \
                     _Pragma("clang diagnostic ignored \"-Wformat\"") \
@@ -91,10 +105,6 @@ unsigned long long: fprintf(stderr,"%s:%d %s=%llu\n",__FILE__,__LINE__,#x,x),\
                     _Pragma("warning( pop )")\
                     _Pragma("gcc diagnostic pop")\
                     _Pragma("clang diagnostic pop"))
-#else
-#define ul__STACKTRACE(x) ((void)0)
-#define ul__DBUG(...)     ((void)0)
-#define ul__VARTRACE(x)   ((void)0)
 #endif
 
 
@@ -190,7 +200,7 @@ static inline void ul__memzero_s(void *const p, const size_t z) {
 //---------------------------------------------------------------------------
 //      Wrapper for fgets() to get a fixed width string with truncation.
 //------------------+------------------+------------------+------------------
-static inline char *ul__inputline(char *buf, size_t n, FILE *fp) {
+static inline char *ul__inputline(char *buf, int n, FILE *fp) {
     if (fgets(buf, n, fp) == NULL) return NULL;
     if (strlen(buf) < 1) return buf;     // Go ahead and return empty string
     if (buf[strlen(buf)-1] == '\n') {    // If we got the newline, NUL it
@@ -321,6 +331,16 @@ static inline char *ul__strdup(const char *s) {
 }
 
 
+static inline void ul__stacktracefunc(int x, const char *funcname) {
+    static int spaces = 0;
+    if (x >= 1) {
+        fprintf(stderr,"%*cEntering %s()\n", spaces, ' ', funcname);
+        spaces+=4;
+    } else {
+        if (spaces >= 4) spaces-=4;
+        fprintf(stderr,"%*cExiting %s()\n", spaces, ' ', funcname);
+    }
+}
 
 
 
