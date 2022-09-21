@@ -1,4 +1,6 @@
 //===========================================================================
+//------------------+------------------+------------------+------------------
+//
 // Utility Library
 // Copyright (c) 2022 Joshua Lee Ockert <torstenvl@gmail.com>
 // https://github.com/torstenvl
@@ -15,6 +17,8 @@
 // See the LICENSE file or visit https://apache.org/licenses/LICENSE-2.0
 // 
 // SPDX-License-Identifier: ISC OR MIT OR Apache-2.0
+//
+//------------------+------------------+------------------+------------------
 //===========================================================================
 
 #ifndef UTILLIB_H__
@@ -24,19 +28,59 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <stdarg.h>
 
-#ifdef NDEBUGUL
-  #define UL__NO_DEBUG
-#endif 
+
+
+//===========================================================================
+//        Compile-time constants controlling Utility Library behavior
+//===========================================================================
+// #define UL__NEED_STACKTRACE
+// #define UL__NEED_STRDUP
+// #define UL__CROWDED_NAMESPACE
 #ifdef NDEBUG
   #define UL__NO_DEBUG
+  #undef  UL__NEED_STACKTRACE
 #endif 
 
-#define UL__NO_DEBUG
-// #define UL__NEED_STRDUP
-// #define UL__NEED_STACKTRACE
 
-// #define UL__CROWDED_NAMESPACE
+
+//===========================================================================
+//                       OS and Compiler definitions
+//===========================================================================
+#if (!defined( OS_MAC ) && !defined( OS_LIN ) && \
+     !defined( OS_BSD ) && !defined( OS_WIN ))
+  #if defined( __linux__ )
+    #define OS_LIN
+    #define THREADLOCAL thread_local
+  #elif defined( __APPLE__ )
+    #define OS_MAC
+    #define THREADLOCAL __thread
+  #elif defined( _WIN32 )
+    #define OS_WIN
+    #define THREADLOCAL thread_local
+  #elif defined( __unix__ )
+    #define OS_BSD
+    #define THREADLOCAL thread_local
+  #endif
+#endif
+#if (!defined( CC_CLANG ) && !defined( CC_GCC ) && !defined( CC_MSVCPP ))
+  #if defined( __GNUC__ )
+    #define CC_GCC
+  #elif defined( __clang__ )
+    #define CC_CLANG
+  #elif defined( _MSC_VER )
+    #define CC_MSVCPP
+  #elif defined(__MINGW32__) || defined(__MINGW64__)
+    #define CC_MINGW
+  #endif
+#endif
+
+
+
+//===========================================================================
+//      Define shorter/cleaner names if we don't have namespace issues
+//===========================================================================
 #ifndef UL__CROWDED_NAMESPACE
   #define BUILDSTAMP       ul__BUILDSTAMP
   #define LOG(...)         ul__LOG(__VA_ARGS__)
@@ -64,54 +108,69 @@
   #endif
 #endif
 
-#define ul__STACKTRACE(x) ((void)0)
-#ifndef UL__NO_DEBUG
-  #ifdef UL__NEED_STACKTRACE
-    #undef ul__STACKTRACE
-    #define ul__STACKTRACE(x) ul__stacktracefunc(x, __func__)
-  #endif
+
+//===========================================================================
+//            Conditional definition of debugging functionality
+//===========================================================================
+#ifndef UL__NEED_STACKTRACE
+  #define ul__STACKTRACE(x) ul__stacktrace(x, __func__)
+#else
+  #define ul__STACKTRACE(x) ((void)0)
 #endif
 
 #ifdef UL__NO_DEBUG
-#define ul__DBUG(...)     ((void)0)
-#define ul__VARTRACE(x)   ((void)0)
+  #define ul__DBUG(...)     ((void)0)
+  #define ul__VARTRACE(x)   ((void)0)
 #else
-#define ul__DBUG(...) (ul__LOG(__VA_ARGS__))
-#define ul__VARTRACE(x) _Pragma("clang diagnostic push") \
-                    _Pragma("clang diagnostic ignored \"-Wformat\"") \
-                    _Pragma("gcc diagnostic push") \
-                    _Pragma("gcc diagnostic ignored \"-Wformat\"") \
-                    _Pragma("warning( push )")\
-                    _Pragma("warning( disable : 4477 )")\
-                    _Generic((x),\
-             _Bool: fprintf(stderr,"%s:%d %s=%s\n",\
-                                   __FILE__,__LINE__,#x,(x)?"true":"false"),\
-              char: fprintf(stderr,"%s:%d %s=%c\n",__FILE__,__LINE__,#x,x),\
-       signed char: fprintf(stderr,"%s:%d %s=%c\n",__FILE__,__LINE__,#x,x),\
-     unsigned char: fprintf(stderr,"%s:%d %s=%c\n",__FILE__,__LINE__,#x,x),\
-               int: fprintf(stderr,"%s:%d %s=%d\n",__FILE__,__LINE__,#x,x),\
-      unsigned int: fprintf(stderr,"%s:%d %s=%u\n",__FILE__,__LINE__,#x,x),\
-              long: fprintf(stderr,"%s:%d %s=%ld\n",__FILE__,__LINE__,#x,x),\
-         long long: fprintf(stderr,"%s:%d %s=%lld\n",__FILE__,__LINE__,#x,x),\
-     unsigned long: fprintf(stderr,"%s:%d %s=%lu\n",__FILE__,__LINE__,#x,x),\
-unsigned long long: fprintf(stderr,"%s:%d %s=%llu\n",__FILE__,__LINE__,#x,x),\
-             float: fprintf(stderr,"%s:%d %s=%f\n",__FILE__,__LINE__,#x,x),\
-            double: fprintf(stderr,"%s:%d %s=%f\n",__FILE__,__LINE__,#x,x),\
-       long double: fprintf(stderr,"%s:%d %s=%f\n",__FILE__,__LINE__,#x,x),\
-             char*: fprintf(stderr,(x)?"%s:%d %s=\"%s\"\n":"%s:%d %s=%s\n",__FILE__,__LINE__,#x,x),\
-      signed char*: fprintf(stderr,(x)?"%s:%d %s=\"%s\"\n":"%s:%d %s=%s\n",__FILE__,__LINE__,#x,x),\
-    unsigned char*: fprintf(stderr,(x)?"%s:%d %s=\"%s\"\n":"%s:%d %s=%s\n",__FILE__,__LINE__,#x,x),\
-           default: fprintf(stderr,"%s:%d %s is an unknown type; first eight bytes are 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n",__FILE__,__LINE__,#x, (unsigned char)((unsigned char *)&x + 0), (unsigned char)((unsigned char *)&x + 1), (unsigned char)((unsigned char *)&x + 2), (unsigned char)((unsigned char *)&x + 3), (unsigned char)((unsigned char *)&x + 4), (unsigned char)((unsigned char *)&x + 5), (unsigned char)((unsigned char *)&x + 6), (unsigned char)((unsigned char *)&x + 7))\
-                    _Pragma("warning( pop )")\
-                    _Pragma("gcc diagnostic pop")\
-                    _Pragma("clang diagnostic pop"))
+  #define ul__DBUG(...) (ul__LOG(__VA_ARGS__))
+  #define ul__VARTRACE(x) _Pragma("clang diagnostic push") \
+                      _Pragma("clang diagnostic ignored \"-Wformat\"") \
+                      _Pragma("gcc diagnostic push") \
+                      _Pragma("gcc diagnostic ignored \"-Wformat\"") \
+                      _Pragma("warning( push )")\
+                      _Pragma("warning( disable : 4477 )")\
+                      _Generic((x),\
+               _Bool: fprintf(stderr,"%s:%d %s=%s\n",\
+                                     __FILE__,__LINE__,#x,(x)?"true":"false"),\
+                char: fprintf(stderr,"%s:%d %s=%c\n",__FILE__,__LINE__,#x,x),\
+         signed char: fprintf(stderr,"%s:%d %s=%c\n",__FILE__,__LINE__,#x,x),\
+       unsigned char: fprintf(stderr,"%s:%d %s=%c\n",__FILE__,__LINE__,#x,x),\
+                 int: fprintf(stderr,"%s:%d %s=%d\n",__FILE__,__LINE__,#x,x),\
+        unsigned int: fprintf(stderr,"%s:%d %s=%u\n",__FILE__,__LINE__,#x,x),\
+                long: fprintf(stderr,"%s:%d %s=%ld\n",__FILE__,__LINE__,#x,x),\
+           long long: fprintf(stderr,"%s:%d %s=%lld\n",__FILE__,__LINE__,#x,x),\
+       unsigned long: fprintf(stderr,"%s:%d %s=%lu\n",__FILE__,__LINE__,#x,x),\
+  unsigned long long: fprintf(stderr,"%s:%d %s=%llu\n",__FILE__,__LINE__,#x,x),\
+               float: fprintf(stderr,"%s:%d %s=%f\n",__FILE__,__LINE__,#x,x),\
+              double: fprintf(stderr,"%s:%d %s=%f\n",__FILE__,__LINE__,#x,x),\
+         long double: fprintf(stderr,"%s:%d %s=%f\n",__FILE__,__LINE__,#x,x),\
+               char*: fprintf(stderr,(x)?"%s:%d %s=\"%s\"\n":"%s:%d %s=%s\n",\
+                                         __FILE__,__LINE__,#x,x),\
+        signed char*: fprintf(stderr,(x)?"%s:%d %s=\"%s\"\n":"%s:%d %s=%s\n",\
+                                         __FILE__,__LINE__,#x,x),\
+      unsigned char*: fprintf(stderr,(x)?"%s:%d %s=\"%s\"\n":"%s:%d %s=%s\n",\
+                                         __FILE__,__LINE__,#x,x),\
+             default: fprintf(stderr,"%s:%d %s is an unknown type; first eight\
+ bytes are 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n",\
+                                     __FILE__,__LINE__,#x,\
+                                     (unsigned char)((unsigned char *)&x + 0),\
+                                     (unsigned char)((unsigned char *)&x + 1),\
+                                     (unsigned char)((unsigned char *)&x + 2),\
+                                     (unsigned char)((unsigned char *)&x + 3),\
+                                     (unsigned char)((unsigned char *)&x + 4),\
+                                     (unsigned char)((unsigned char *)&x + 5),\
+                                     (unsigned char)((unsigned char *)&x + 6),\
+                                     (unsigned char)((unsigned char *)&x + 7))\
+                      _Pragma("warning( pop )")\
+                      _Pragma("gcc diagnostic pop")\
+                      _Pragma("clang diagnostic pop"))
 #endif
 
 
 
-//---------------------------------------------------------------------------
+//===========================================================================
 //              A constant containing YYYYMMDD.HHMMSS timestamp
-//------------------+------------------+------------------+------------------
+//===========================================================================
 #define ul__BUILDSTAMP \
 (char[]){ __DATE__[7], __DATE__[8], __DATE__[9], __DATE__[10], \
          (__DATE__[0]=='O' || __DATE__[0]=='N' || __DATE__[0]=='D') ? '1' : '0', \
@@ -136,26 +195,52 @@ unsigned long long: fprintf(stderr,"%s:%d %s=%llu\n",__FILE__,__LINE__,#x,x),\
 
 
 
-//---------------------------------------------------------------------------
+//===========================================================================
 //             Kill the program with appropriate error messages.
-//------------------+------------------+------------------+------------------
-#define ul__DIE(...) do { \
-    fprintf(stderr, "Died: line %zu (function %s)\n", __LINE__, __func__);  \
-    fprintf(stderr, __VA_ARGS__);                                           \
-    fprintf(stderr, "\n\n\n");                                              \
-    exit(EXIT_FAILURE);                                                     \
-    } while (0)
+//===========================================================================
+#define ul__DIE(...) ul__diefunc(__LINE__, __func__, __VA_ARGS__)
+
+static inline int ul__diefunc(size_t line, const char *function, 
+                              const char *format,           ... ) {
+    va_list args;
+
+    fprintf(stderr, "Died: line %zu (function %s)\n", line, function);
+    
+    va_start(args, format);
+    _Pragma("gcc diagnostic push")
+    _Pragma("gcc diagnostic ignored \"-Wformat-nonliteral\"")
+    _Pragma("clang diagnostic push")
+    _Pragma("clang diagnostic ignored \"-Wformat-nonliteral\"")
+    vfprintf(stderr, format, args);
+    _Pragma("clang diagnostic pop")
+    _Pragma("gcc diagnostic pop")
+    va_end(args);
+
+    fprintf(stderr, "\n\n\n");
+
+    exit(EXIT_FAILURE);
+
+    // This should be unreachable, since exit() does not return. However,
+    // a return statement is necessary for an int function, and an int
+    // function is necessary for compilers not to complain about || DIE()
+    // syntax. 
+    return 0; 
+}
 
 
-
-#define ul__LOG(...) (fprintf(stderr, "In %s:%s() on line %d: ", \
-                       __FILE__, __func__, __LINE__) \
-                       && fprintf(stderr, __VA_ARGS__ ) \
+//===========================================================================
+//                             Log to stderr
+//===========================================================================
+#define ul__LOG(...) (fprintf(stderr, "In %s:%s() on line %d: ",            \
+                       __FILE__, __func__, __LINE__)                        \
+                       && fprintf(stderr, __VA_ARGS__ )                     \
                        && fprintf(stderr, "\n"))
-                  
-//---------------------------------------------------------------------------
+
+
+
+//===========================================================================
 //             Free allocated memory and set the pointer to NULL.
-//------------------+------------------+------------------+------------------
+//===========================================================================
 #define ul__free(x) do { \
     (free)(x);                                                              \
     x = NULL;                                                               \
@@ -163,9 +248,9 @@ unsigned long long: fprintf(stderr,"%s:%d %s=%llu\n",__FILE__,__LINE__,#x,x),\
 
 
 
-//---------------------------------------------------------------------------
+//===========================================================================
 //       Easier-to-read aliases to cryptic standard library functions
-//------------------+------------------+------------------+------------------
+//===========================================================================
 #define ul__stridxnomatch(...)       strspn(__VA_ARGS__)
 #define ul__stridxmatch(...)         strcspn(__VA_ARGS__)
 #define ul__strspanmatch(...)        strspn(__VA_ARGS__)
@@ -177,17 +262,17 @@ unsigned long long: fprintf(stderr,"%s:%d %s=%llu\n",__FILE__,__LINE__,#x,x),\
 
 
 
-//---------------------------------------------------------------------------
-//                       Initialize all memory to zero
-//------------------+------------------+------------------+------------------
+//===========================================================================
+//                       Initialize all memory to zero.
+//===========================================================================
 #define ul__memzero(x, y) \
     memset(x, 0, y)
 
 
 
-//---------------------------------------------------------------------------
+//===========================================================================
 //       Actually initialize all memory to zero, do not optimize out.        
-//------------------+------------------+------------------+------------------
+//===========================================================================
 static inline void ul__memzero_s(void *const p, const size_t z) {
     volatile unsigned char *volatile p_ = (volatile unsigned char *volatile)p;
     for (size_t i=(size_t)0U; i<z; i++) {
@@ -197,9 +282,9 @@ static inline void ul__memzero_s(void *const p, const size_t z) {
 
 
 
-//---------------------------------------------------------------------------
+//===========================================================================
 //      Wrapper for fgets() to get a fixed width string with truncation.
-//------------------+------------------+------------------+------------------
+//===========================================================================
 static inline char *ul__inputline(char *buf, int n, FILE *fp) {
     if (fgets(buf, n, fp) == NULL) return NULL;
     if (strlen(buf) < 1) return buf;     // Go ahead and return empty string
@@ -215,9 +300,9 @@ static inline char *ul__inputline(char *buf, int n, FILE *fp) {
 
 
 
-//---------------------------------------------------------------------------
+//===========================================================================
 //   Allow quick/dirty auto storage of dynamic strings. NOT THREAD SAFE!!!
-//------------------+------------------+------------------+------------------
+//===========================================================================
 static inline char *ul__autostr(char *s) {
     static char buffer[32768];
     if (!s) return NULL;
@@ -229,9 +314,9 @@ static inline char *ul__autostr(char *s) {
 
 
 
-//---------------------------------------------------------------------------
+//===========================================================================
 //                    Add signed integers with wraparound.
-//------------------+------------------+------------------+------------------
+//===========================================================================
 #define ul__addwrap(a, b) _Generic((a),                                   \
                                 char: _Generic((b),                       \
                                             char: ul__addwrapchar,        \
@@ -257,7 +342,7 @@ static inline char *ul__autostr(char *s) {
                                  int: _Generic((b),                       \
                                             char: ul__addwrapint,         \
                                      signed char: ul__addwrapint,         \
-                                           short: ul__addwrapint,       \
+                                           short: ul__addwrapint,         \
                                              int: ul__addwrapint,         \
                                             long: ul__addwraplong,        \
                                          default: ul__addwraplonglong),   \
@@ -320,6 +405,7 @@ static inline long long ul__addwraplonglong(long long a, long long b) {
 }
 
 
+
 //---------------------------------------------------------------------------
 //                Quick/dirty strdup() for non-POSIX systems.
 //------------------+------------------+------------------+------------------
@@ -331,8 +417,9 @@ static inline char *ul__strdup(const char *s) {
 }
 
 
-static inline void ul__stacktracefunc(int x, const char *funcname) {
-    static int spaces = 0;
+
+static inline void ul__stacktrace(int x, const char *funcname) {
+    static THREADLOCAL int spaces = 0;
     if (x >= 1) {
         fprintf(stderr,"%*cEntering %s()\n", spaces, ' ', funcname);
         spaces+=4;
