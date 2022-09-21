@@ -62,7 +62,7 @@
 #ifndef UL__NO_DEBUG
 #define ul__STACKTRACE(x) (fprintf(stderr,"%sing %s()\n",\
                                      (x==1)?"Enter":"Exit", __func__))
-#define ul__DBUG(...) (_ul_LOG(__VA_ARGS__))
+#define ul__DBUG(...) (ul__LOG(__VA_ARGS__))
 #define ul__VARTRACE(x) _Pragma("clang diagnostic push") \
                     _Pragma("clang diagnostic ignored \"-Wformat\"") \
                     _Pragma("gcc diagnostic push") \
