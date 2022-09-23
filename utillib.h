@@ -27,6 +27,7 @@
 #include <limits.h>
 #include <stdarg.h>
 
+static inline void ul__stacktrace(int x, const char *funcname);
 
 
 //===========================================================================
@@ -49,16 +50,12 @@
      !defined( OS_BSD ) && !defined( OS_WIN ))
   #if defined( __linux__ )
     #define OS_LIN
-    #define THREADLOCAL thread_local
   #elif defined( __APPLE__ )
     #define OS_MAC
-    #define THREADLOCAL __thread
   #elif defined( _WIN32 )
     #define OS_WIN
-    #define THREADLOCAL thread_local
   #elif defined( __unix__ )
     #define OS_BSD
-    #define THREADLOCAL thread_local
   #endif
 #endif
 #if (!defined( CC_CLANG ) && !defined( CC_GCC ) && !defined( CC_MSVCPP ))
@@ -84,10 +81,10 @@
   #define PRAGMADIAGFORMAT   "clang diagnostic ignored \"-Wformat\""
   #define PRAGMADIAGFMTLIT   "clang diagnostic ignored \"-Wformat-nonliteral\""
 #elif defined( CC_GCC )
-  #define PRAGMADIAGPUSH     "gcc diagnostic push"
-  #define PRAGMADIAGPOP      "gcc diagnostic pop"
-  #define PRAGMADIAGFORMAT   "gcc diagnostic ignored \"-Wformat\""
-  #define PRAGMADIAGFMTLIT   "gcc diagnostic ignored \"-Wformat-nonliteral\""
+  #define PRAGMADIAGPUSH     "GCC diagnostic push"
+  #define PRAGMADIAGPOP      "GCC diagnostic pop"
+  #define PRAGMADIAGFORMAT   "GCC diagnostic ignored \"-Wformat\""
+  #define PRAGMADIAGFMTLIT   "GCC diagnostic ignored \"-Wformat-nonliteral\""
 #elif defined( CC_MSVCPP )
   #define PRAGMADIAGPUSH     "warning( push )"
   #define PRAGMADIAGPOP      "warning( pop )"
@@ -131,10 +128,21 @@
 //===========================================================================
 //            Conditional definition of debugging functionality
 //===========================================================================
-#ifndef UL__NEED_STACKTRACE
-  #define ul__STACKTRACE(x) ul__stacktrace(x, __func__)
+
+#ifdef UL__NEED_STACKTRACE
+  #define ul__STACKTRACE(x)   ul__stacktrace(x, __func__)
+  #define FUNC_ENTER          ul__STACKTRACE(1)
+  #define FUNC_VOID_RETURN    do { ul__STACKTRACE(0); return;                     } while(0)
+  #define FUNC_RETURN(x)      do { ul__STACKTRACE(0); return x;                   } while(0)
+  #define FUNC_VOID_DIE(...)  do { LOG(__VA_ARGS__); ul__STACKTRACE(0); return;   } while(0)
+  #define FUNC_DIE(x,...)     do { LOG(__VA_ARGS__); ul__STACKTRACE(0); return x; } while(0)
 #else
-  #define ul__STACKTRACE(x) ((void)0)
+  #define ul__STACKTRACE(x)   ((void)0)
+  #define FUNC_ENTER          ul__STACKTRACE(1)
+  #define FUNC_VOID_RETURN    do { return;                      } while(0)
+  #define FUNC_RETURN(x)      do { return x;                    } while(0)
+  #define FUNC_VOID_DIE(...)  do { LOG(__VA_ARGS__); return;    } while(0)
+  #define FUNC_DIE(x,...)     do { LOG(__VA_ARGS__); return x;  } while(0)
 #endif
 
 #ifdef UL__NO_DEBUG
@@ -368,10 +376,13 @@ static inline char *ul__autostr(char *s) {
 
 static inline char ul__addwrapchar(char a, char b) {
     char result; 
-    if (CHAR_MIN != SCHAR_MIN) result = a + b;
+#if SCHAR_MIN == CHAR_MIN
     else result = ((a<0 && b<CHAR_MIN-a) ? (CHAR_MAX+(b-(CHAR_MIN-a)+1)) : 
                    (a>0 && b>CHAR_MAX-a) ? (CHAR_MIN+(b-(CHAR_MAX-a)-1)) : 
                    (a + b));
+#else 
+    result = a + b;
+#endif 
     return result;
 }
 
@@ -430,7 +441,7 @@ static inline char *ul__strdup(const char *s) {
 
 
 static inline void ul__stacktrace(int x, const char *funcname) {
-    static THREADLOCAL int spaces = 0;
+    static _Thread_local int spaces = 0;
     if (x >= 1) {
         fprintf(stderr,"%*cEntering %s()\n", spaces, ' ', funcname);
         spaces+=4;
