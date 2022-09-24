@@ -27,7 +27,6 @@
 #include <limits.h>
 #include <stdarg.h>
 
-static inline void ul__stacktrace(int x, const char *funcname);
 
 
 //===========================================================================
@@ -125,9 +124,22 @@ static inline void ul__stacktrace(int x, const char *funcname);
 #endif
 
 
+
+
 //===========================================================================
-//            Conditional definition of debugging functionality
+//           Conditional definition of stacktracing functionality
 //===========================================================================
+
+static inline void ul__stacktrace(int x, const char *funcname) {
+    static _Thread_local int spaces = 0;
+    if (x >= 1) {
+        fprintf(stderr,"%*cEntering %s()\n", spaces, ' ', funcname);
+        spaces+=4;
+    } else {
+        if (spaces >= 4) spaces-=4;
+        fprintf(stderr,"%*cExiting %s()\n", spaces, ' ', funcname);
+    }
+}
 
 #ifdef UL__NEED_STACKTRACE
   #define ul__STACKTRACE(x)   ul__stacktrace(x, __func__)
@@ -138,13 +150,18 @@ static inline void ul__stacktrace(int x, const char *funcname);
   #define FUNC_DIE(x,...)     do { LOG(__VA_ARGS__); ul__STACKTRACE(0); return x; } while(0)
 #else
   #define ul__STACKTRACE(x)   ((void)0)
-  #define FUNC_ENTER          ul__STACKTRACE(1)
+  #define FUNC_ENTER          ((void)0)
   #define FUNC_VOID_RETURN    do { return;                      } while(0)
   #define FUNC_RETURN(x)      do { return x;                    } while(0)
   #define FUNC_VOID_DIE(...)  do { LOG(__VA_ARGS__); return;    } while(0)
   #define FUNC_DIE(x,...)     do { LOG(__VA_ARGS__); return x;  } while(0)
 #endif
 
+
+
+//===========================================================================
+//         Conditional definition of other debugging functionality
+//===========================================================================
 #ifdef UL__NO_DEBUG
   #define ul__DBUG(...)     ((void)0)
   #define ul__VARTRACE(x)   ((void)0)
@@ -220,31 +237,12 @@ static inline void ul__stacktrace(int x, const char *funcname);
 //===========================================================================
 //             Kill the program with appropriate error messages.
 //===========================================================================
-#define ul__DIE(...) ul__diefunc(__LINE__, __func__, __VA_ARGS__)
+#define ul__DIE(...) \
+    (fprintf(stderr, "Died: line %d (function %s)\n", __LINE__, __func__) && \
+    fprintf(stderr, __VA_ARGS__) && \
+    fprintf(stderr, "\n\n\n") && \
+    (exit(EXIT_FAILURE), 1))
 
-static inline int ul__diefunc(size_t line, const char *function, 
-                              const char *format,           ... ) {
-    va_list args;
-
-    fprintf(stderr, "Died: line %zu (function %s)\n", line, function);
-    
-    va_start(args, format);
-    _Pragma(PRAGMADIAGPUSH)
-    _Pragma(PRAGMADIAGFMTLIT)
-    vfprintf(stderr, format, args);
-    _Pragma(PRAGMADIAGPOP)
-    va_end(args);
-
-    fprintf(stderr, "\n\n\n");
-
-    exit(EXIT_FAILURE);
-
-    // This should be unreachable, since exit() does not return. However,
-    // a return statement is necessary for an int function, and an int
-    // function is necessary for compilers not to complain about || DIE()
-    // syntax. 
-    return 0; 
-}
 
 
 //===========================================================================
@@ -377,9 +375,9 @@ static inline char *ul__autostr(char *s) {
 static inline char ul__addwrapchar(char a, char b) {
     char result; 
 #if SCHAR_MIN == CHAR_MIN
-    else result = ((a<0 && b<CHAR_MIN-a) ? (CHAR_MAX+(b-(CHAR_MIN-a)+1)) : 
-                   (a>0 && b>CHAR_MAX-a) ? (CHAR_MIN+(b-(CHAR_MAX-a)-1)) : 
-                   (a + b));
+    result = ((a<0 && b<CHAR_MIN-a) ? (CHAR_MAX+(b-(CHAR_MIN-a)+1)) : 
+              (a>0 && b>CHAR_MAX-a) ? (CHAR_MIN+(b-(CHAR_MAX-a)-1)) : 
+              (a + b));
 #else 
     result = a + b;
 #endif 
@@ -436,19 +434,6 @@ static inline char *ul__strdup(const char *s) {
     char *r = malloc(n+1);
     if (r) { memcpy(r, s, n); r[n] = '\0'; }
     return r;
-}
-
-
-
-static inline void ul__stacktrace(int x, const char *funcname) {
-    static _Thread_local int spaces = 0;
-    if (x >= 1) {
-        fprintf(stderr,"%*cEntering %s()\n", spaces, ' ', funcname);
-        spaces+=4;
-    } else {
-        if (spaces >= 4) spaces-=4;
-        fprintf(stderr,"%*cExiting %s()\n", spaces, ' ', funcname);
-    }
 }
 
 
