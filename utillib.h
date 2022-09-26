@@ -1,22 +1,26 @@
-//===========================================================================
+// ===========================================================================
 //
-// Utility Library
-// Copyright (c) 2022 Joshua Lee Ockert <torstenvl@gmail.com>
-// https://github.com/torstenvl
+//                                 Util Lib
+//    A collection of utilities to make C programming and debugging easier
 //
-// THIS WORK IS PROVIDED "AS IS" WITH NO EXPRESS OR IMPLIED WARRANTIES. THERE
-// IS EXPRESSLY NO WARRANTY OF MERCHANTABILITY, FITNESS, NON-INFRINGEMENT, OR
-// TITLE. NO AUTHOR SHALL BE LIABLE, UNDER ANY THEORY OF LAW, FOR ANY DAMAGES 
-// OF ANY CHARACTER WHATSOEVER RELATING TO THE USE OF THIS WORK.
+// ---------------------------------------------------------------------------
 //
-// Permission to use, copy, modify, and/or distribute this work for any
-// purpose is hereby granted, provided this notice appears in all copies.
-//---------------------------------------------------------------------------
-// You may instead license this work under the MIT or Apache 2.0 licenses. 
-// https://opensource.org/licenses/MIT https://www.apache.org/licenses/
-// SPDX-License-Identifier: ISC OR MIT OR Apache-2.0
+//   Copyright (c) 2022 Joshua Lee Ockert <torstenvl@gmail.com>
+//                      https://github.com/torstenvl/
+//   
+//   THIS WORK IS PROVIDED "AS IS" WITH NO WARRANTY OF ANY KIND. THE IMPLIED
+//   WARRANTIES OF MERCHANTABILITY, FITNESS, NON-INFRINGEMENT, AND TITLE ARE
+//   EXPRESSLY DISCLAIMED. NO AUTHOR SHALL BE LIABLE UNDER ANY THEORY OF LAW
+//   FOR ANY DAMAGES OF ANY KIND RESULTING FROM THE USE OF THIS WORK.
+//   
+//   Permission to use, copy, modify, and/or distribute this work for any
+//   purpose is hereby granted, provided this notice appears in all copies.
+//   -----------------------------------------------------------------------
+//   You may instead license this work under the MIT or Apache 2.0 licenses. 
+//   https://opensource.org/licenses/MIT https://www.apache.org/licenses/
+//   SPDX-License-Identifier: ISC OR MIT OR Apache-2.0
 //
-//===========================================================================
+// ===========================================================================
 
 #ifndef UTILLIB_H__
 #define UTILLIB_H__
