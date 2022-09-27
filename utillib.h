@@ -7,17 +7,18 @@
 //
 //   Copyright (c) 2022 Joshua Lee Ockert <torstenvl@gmail.com>
 //                      https://github.com/torstenvl/
-//   
+//
 //   THIS WORK IS PROVIDED "AS IS" WITH NO WARRANTY OF ANY KIND. THE IMPLIED
 //   WARRANTIES OF MERCHANTABILITY, FITNESS, NON-INFRINGEMENT, AND TITLE ARE
 //   EXPRESSLY DISCLAIMED. NO AUTHOR SHALL BE LIABLE UNDER ANY THEORY OF LAW
 //   FOR ANY DAMAGES OF ANY KIND RESULTING FROM THE USE OF THIS WORK.
-//   
+//
 //   Permission to use, copy, modify, and/or distribute this work for any
 //   purpose is hereby granted, provided this notice appears in all copies.
-//   -----------------------------------------------------------------------
-//   You may instead license this work under the MIT or Apache 2.0 licenses. 
+//
+//   You may instead license this work under the MIT or Apache 2.0 licenses.
 //   https://opensource.org/licenses/MIT https://www.apache.org/licenses/
+//
 //   SPDX-License-Identifier: ISC OR MIT OR Apache-2.0
 //
 // ===========================================================================
@@ -42,7 +43,7 @@
 #ifdef NDEBUG
   #define UL__NO_DEBUG
   #undef  UL__NEED_STACKTRACE
-#endif 
+#endif
 
 
 
@@ -292,7 +293,7 @@ static inline void ul__stacktrace(int x, const char *funcname) {
 
 
 //===========================================================================
-//       Actually initialize all memory to zero, do not optimize out.        
+//       Actually initialize all memory to zero, do not optimize out.
 //===========================================================================
 static inline void ul__memzero_s(void *const p, const size_t z) {
     volatile unsigned char *volatile p_ = (volatile unsigned char *volatile)p;
@@ -325,7 +326,7 @@ static inline char *ul__inputline(char *buf, int n, FILE *fp) {
 //   Allow quick/dirty auto storage of dynamic strings. NOT THREAD SAFE!!!
 //===========================================================================
 static inline char *ul__autostr(char *s) {
-    static char buffer[32768];
+    _Thread_local static char buffer[32768];
     if (!s) return NULL;
     memmove(buffer, s, strlen(s));
     buffer[strlen(s)] = '\0';
@@ -377,62 +378,62 @@ static inline char *ul__autostr(char *s) {
                              default: ul__addwraplonglong)(a, b)
 
 static inline char ul__addwrapchar(char a, char b) {
-    char result; 
+    char result;
 #if SCHAR_MIN == CHAR_MIN
-    result = ((a<0 && b<CHAR_MIN-a) ? (CHAR_MAX+(b-(CHAR_MIN-a)+1)) : 
-              (a>0 && b>CHAR_MAX-a) ? (CHAR_MIN+(b-(CHAR_MAX-a)-1)) : 
+    result = ((a<0 && b<CHAR_MIN-a) ? (CHAR_MAX+(b-(CHAR_MIN-a)+1)) :
+              (a>0 && b>CHAR_MAX-a) ? (CHAR_MIN+(b-(CHAR_MAX-a)-1)) :
               (a + b));
-#else 
+#else
     result = a + b;
-#endif 
+#endif
     return result;
 }
 
 static inline signed char ul__addwrapsignedchar(signed char a, signed char b) {
     signed char result;
-    result = ((a<0 && b<SCHAR_MIN-a) ? (SCHAR_MAX+(b-(SCHAR_MIN-a)+1)) : 
-              (a>0 && b>SCHAR_MAX-a) ? (SCHAR_MIN+(b-(SCHAR_MAX-a)-1)) : 
+    result = ((a<0 && b<SCHAR_MIN-a) ? (SCHAR_MAX+(b-(SCHAR_MIN-a)+1)) :
+              (a>0 && b>SCHAR_MAX-a) ? (SCHAR_MIN+(b-(SCHAR_MAX-a)-1)) :
               (a + b));
     return result;
 }
 
 static inline short ul__addwrapshort(short a, short b) {
     short result;
-    result = ((a<0 && b<SHRT_MIN-a) ? (SHRT_MAX+(b-(SHRT_MIN-a)+1)) : 
-             (a>0 && b>SHRT_MAX-a) ? (SHRT_MIN+(b-(SHRT_MAX-a)-1)) : 
+    result = ((a<0 && b<SHRT_MIN-a) ? (SHRT_MAX+(b-(SHRT_MIN-a)+1)) :
+             (a>0 && b>SHRT_MAX-a) ? (SHRT_MIN+(b-(SHRT_MAX-a)-1)) :
              (a + b));
     return result;
 }
 
 static inline int ul__addwrapint(int a, int b) {
     int result;
-    result = ((a<0 && b<INT_MIN-a) ? (INT_MAX+(b-(INT_MIN-a)+1)) : 
-             (a>0 && b>INT_MAX-a) ? (INT_MIN+(b-(INT_MAX-a)-1)) : 
+    result = ((a<0 && b<INT_MIN-a) ? (INT_MAX+(b-(INT_MIN-a)+1)) :
+             (a>0 && b>INT_MAX-a) ? (INT_MIN+(b-(INT_MAX-a)-1)) :
              (a + b));
     return result;
 }
 
 static inline long ul__addwraplong(long a, long b) {
     long result;
-    result = ((a<0 && b<LONG_MIN-a) ? (LONG_MAX+(b-(LONG_MIN-a)+1)) : 
-              (a>0 && b>LONG_MAX-a) ? (LONG_MIN+(b-(LONG_MAX-a)-1)) : 
+    result = ((a<0 && b<LONG_MIN-a) ? (LONG_MAX+(b-(LONG_MIN-a)+1)) :
+              (a>0 && b>LONG_MAX-a) ? (LONG_MIN+(b-(LONG_MAX-a)-1)) :
               (a + b));
     return result;
 }
 
 static inline long long ul__addwraplonglong(long long a, long long b) {
     long long result;
-    result = ((a<0 && b<LLONG_MIN-a) ? (LLONG_MAX+(b-(LLONG_MIN-a)+1)) : 
-              (a>0 && b>LLONG_MAX-a) ? (LLONG_MIN+(b-(LLONG_MAX-a)-1)) : 
+    result = ((a<0 && b<LLONG_MIN-a) ? (LLONG_MAX+(b-(LLONG_MIN-a)+1)) :
+              (a>0 && b>LLONG_MAX-a) ? (LLONG_MIN+(b-(LLONG_MAX-a)-1)) :
               (a + b));
     return result;
 }
 
 
 
-//---------------------------------------------------------------------------
+//===========================================================================
 //                Quick/dirty strdup() for non-POSIX systems.
-//------------------+------------------+------------------+------------------
+//===========================================================================
 static inline char *ul__strdup(const char *s) {
     size_t n = strlen(s);
     char *r = malloc(n+1);
@@ -441,5 +442,89 @@ static inline char *ul__strdup(const char *s) {
 }
 
 
+//===========================================================================
+//              Limited UTF-8 and UTF-16 Conversion Functions.
+//===========================================================================
+
+static int32_t cdpt_from_utf8(const unsigned char *s) {
+    if (s[0] <= 0x7F) return s[0];
+
+    if ((0xC0 <= s[0] && s[0] <= 0xDF) &&     //  1100 0000 —— 1101 1111
+        (0x80 <= s[1] && s[1] <= 0xBF))       //  1000 0000 —— 1011 1111
+            return ((s[0] & 0x1F) <<  6) |         // 000xxxxx______
+                   ((s[1] & 0x3F) <<  0) ;         //       00xxxxxx
+
+    if ((0xE0 <= s[0] && s[0] <= 0xEF) &&     //  1110 0000 —— 1110 1111
+        (0x80 <= s[1] && s[1] <= 0xBF) &&     //  1000 0000 —— 1011 1111
+        (0x80 <= s[2] && s[2] <= 0xBF))       //  1000 0000 —— 1011 1111
+            return ((s[0] & 0x0F) << 12) |         // xxxx____________
+                   ((s[1] & 0x3F) <<  6) |         //   00xxxxxx______
+                   ((s[2] & 0x3F) <<  0) ;         //         00xxxxxx
+
+    if ((0xF0 <= s[0] && s[0] <= 0xF7) &&     //  1111 0000 —— 1111 0111
+        (0x80 <= s[1] && s[1] <= 0xBF) &&     //  1000 0000 —— 1011 1111
+        (0x80 <= s[2] && s[2] <= 0xBF) &&     //  1000 0000 —— 1011 1111
+        (0x80 <= s[3] && s[3] <= 0xBF))       //  1000 0000 —— 1011 1111
+            return ((s[0] & 0x07) << 18) |         // xxx__________________
+                   ((s[1] & 0x3F) << 12) |         //  00xxxxxx____________
+                   ((s[2] & 0x3F) <<  6) |         //        00xxxxxx______
+                   ((s[3] & 0x3F) <<  0) ;         //              00xxxxxx
+
+    /* Default -- maybe it isn't UTF-8? */
+    return s[0];
+}
+
+
+static int32_t cdpt_from_utf16(uint16_t hi, uint16_t lo) {
+    if (0xD800 <= hi && hi <= 0xDBFF) {
+        if (0xDC00 <= lo && lo <= 0xDFFF) {
+            // We have a valid surrogate pair, so convert it.
+            // Unicode 15.0, Tbl 3-5 says UTF-16 surrogate pairs in form:
+            //         110110wwwwyyyyyy
+            //                   110111xxxxxxxxxx
+            // map to scalar code points of value:
+            //              uuuuuyyyyyyxxxxxxxxxx     (uuuuu=wwww+1)
+            return ((lo & 0x03FF)        |
+                   ((hi & 0x003F) << 10) |
+                   ((hi & 0x03C0) << 10) +
+                   ((     0x0040) << 10));
+        }
+    }
+    else if (!(0xDC00 <= lo && lo <= 0xDFFF)) {
+        return lo;
+    }
+
+    return '?';
+}
+
+
+static unsigned char *utf8_from_cdpt(int32_t c) {
+    _Thread_local static unsigned char u[5];
+    if (c<0 || (0xD800 <= c&&c <= 0xDBFF)) u[0]= '\0';
+    else if (c < 0x80) {               // Up to 7 bits
+        u[0]= (unsigned char)(c>>0   & 0x7F);  // 7 bits –> 0xxxxxxx
+        u[1]= '\0';
+    }
+    else if (c < 0x800) {              // Up to 11 bits
+        u[0]= (unsigned char)((c>>6  & 0x1F)|0xC0);  // 5 bits –> 110xxxxx
+        u[1]= (unsigned char)((c     & 0x3F)|0x80);  // 6 bits –> 10xxxxxx
+        u[2]= '\0';
+    }
+    else if (c < 0x10000) {            // Up to 16 bits
+        u[0]= (unsigned char)((c>>12 & 0x0F)|0xE0);  // 4 bits –> 1110xxxx
+        u[1]= (unsigned char)((c>>6  & 0x3F)|0x80);  // 6 bits –> 10xxxxxx
+        u[2]= (unsigned char)((c     & 0x3F)|0x80);  // 6 bits –> 10xxxxxx
+        u[3]= '\0';
+    }
+    else if (c < 0x110000) {           // Up to 21 bits
+        u[0]= (unsigned char)((c>>18 & 0x07)|0x80);  // 3 bits –> 11110xxx
+        u[1]= (unsigned char)((c>>12 & 0x3F)|0x80);  // 6 bits –> 10xxxxxx
+        u[2]= (unsigned char)((c>>6  & 0x3F)|0x80);  // 6 bits –> 10xxxxxx
+        u[3]= (unsigned char)((c     & 0x3F)|0x80);  // 6 bits –> 10xxxxxx
+        u[4]= '\0';
+    }
+    else u[0]= '\0';
+    return u;
+}
 
 #endif
