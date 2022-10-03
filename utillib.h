@@ -50,8 +50,7 @@
 //===========================================================================
 //                       OS and Compiler definitions
 //===========================================================================
-#if (!defined( OS_MAC ) && !defined( OS_LIN ) && \
-     !defined( OS_BSD ) && !defined( OS_WIN ))
+#if (!defined( OS_MAC ) && !defined( OS_LIN ) && !defined( OS_BSD ) && !defined( OS_WIN ))
   #if defined( __linux__ )
     #define OS_LIN
   #elif defined( __APPLE__ )
