@@ -493,6 +493,23 @@ static int32_t cdpt_from_utf16(uint16_t hi, uint16_t lo) {
 }
 
 
+static void utf16_from_cdpt(int32_t cdpt, uint16_t *hi, uint16_t *lo) {
+    if (cdpt < 65536) {
+        *hi = 0;
+        *lo = cdpt;
+        return;
+    }
+
+    else {
+        *lo = 0xDC00 | (cdpt & 0x03FF);
+        *hi = cdpt >> 10;
+        *hi = *hi - (1<<6);
+        *hi = *hi | 0xD800;
+        return;
+    }
+}
+
+
 static unsigned char *utf8_from_cdpt(int32_t c) {
     _Thread_local static unsigned char u[5];
     if (c<0 || (0xD800 <= c&&c <= 0xDBFF)) u[0]= '\0';
