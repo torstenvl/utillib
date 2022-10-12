@@ -494,15 +494,15 @@ static int32_t cdpt_from_utf16(uint16_t hi, uint16_t lo) {
 
 
 static void utf16_from_cdpt(int32_t cdpt, uint16_t *hi, uint16_t *lo) {
-    if (cdpt < 65536) {
+    if (0 <= cdpt && cdpt <= 65535) {
         *hi = 0;
-        *lo = cdpt;
+        *lo = (uint16_t)cdpt;
         return;
     }
 
     else {
         *lo = 0xDC00 | (cdpt & 0x03FF);
-        *hi = cdpt >> 10;
+        *hi = (uint16_t)(cdpt >> 10);
         *hi = *hi - (1<<6);
         *hi = *hi | 0xD800;
         return;
