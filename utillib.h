@@ -529,7 +529,7 @@ static unsigned char *utf8_from_cdpt(int32_t c) {
         u[3]= '\0';
     }
     else if (c < 0x110000) {           // Up to 21 bits
-        u[0]= (unsigned char)((c>>18 & 0x07)|0x80);  // 3 bits –> 11110xxx
+        u[0]= (unsigned char)((c>>18 & 0x07)|0xF0);  // 3 bits –> 11110xxx
         u[1]= (unsigned char)((c>>12 & 0x3F)|0x80);  // 6 bits –> 10xxxxxx
         u[2]= (unsigned char)((c>>6  & 0x3F)|0x80);  // 6 bits –> 10xxxxxx
         u[3]= (unsigned char)((c     & 0x3F)|0x80);  // 6 bits –> 10xxxxxx
