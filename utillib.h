@@ -441,7 +441,7 @@ static inline char *ul__strdup(const char *s) {
 //              Limited UTF-8 and UTF-16 Conversion Functions.
 //===========================================================================
 
-static int32_t cdpt_from_utf8(const unsigned char *s) {
+static inline int32_t cdpt_from_utf8(const unsigned char *s) {
     if (s[0] <= 0x7F) return s[0];
 
     if ((0xC0 <= s[0] && s[0] <= 0xDF) &&     //  1100 0000 —— 1101 1111
@@ -470,7 +470,7 @@ static int32_t cdpt_from_utf8(const unsigned char *s) {
 }
 
 
-static int32_t cdpt_from_utf16(uint16_t hi, uint16_t lo) {
+static inline int32_t cdpt_from_utf16(uint16_t hi, uint16_t lo) {
     if (0xD800 <= hi && hi <= 0xDBFF) {
         if (0xDC00 <= lo && lo <= 0xDFFF) {
             // We have a valid surrogate pair, so convert it.
@@ -493,7 +493,7 @@ static int32_t cdpt_from_utf16(uint16_t hi, uint16_t lo) {
 }
 
 
-static void utf16_from_cdpt(int32_t cdpt, uint16_t *hi, uint16_t *lo) {
+static inline void utf16_from_cdpt(int32_t cdpt, uint16_t *hi, uint16_t *lo) {
     if (0 <= cdpt && cdpt <= 65535) {
         *hi = 0;
         *lo = (uint16_t)cdpt;
@@ -510,7 +510,7 @@ static void utf16_from_cdpt(int32_t cdpt, uint16_t *hi, uint16_t *lo) {
 }
 
 
-static unsigned char *utf8_from_cdpt(int32_t c) {
+static inline unsigned char *utf8_from_cdpt(int32_t c) {
     _Thread_local static unsigned char u[5];
     if (c<0 || (0xD800 <= c&&c <= 0xDBFF)) u[0]= '\0';
     else if (c < 0x80) {               // Up to 7 bits
