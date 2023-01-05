@@ -1,12 +1,12 @@
 # utillib
 
-Basic header-only library for frequently-used C functions.
+Basic header-only libraries for frequently-used C functions.
 
 
 --------------------------------------------------------------------------
 
-BITSC (Modified ISC) License Notice  
-Copyright (c) 2022 Joshua Lee Ockert <<torstenvl@gmail.com>>  
+ISC License Notice  
+Copyright (c) 2023 Joshua Lee Ockert <<torstenvl@gmail.com>>  
 https://github.com/torstenvl
 
 THIS WORK IS PROVIDED "AS IS" WITH NO WARRANTY OF ANY KIND. THE IMPLIED

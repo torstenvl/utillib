@@ -42,7 +42,7 @@
   #undef  ulNEEDTRACE
 #endif
 
-
+#define VOID
 
 //===========================================================================
 //                 Per-compiler pragma string definitions
@@ -74,13 +74,11 @@
   #define LOG(...)             ulLOG(__VA_ARGS__)
   #define DBUG(...)            ulDBUG(__VA_ARGS__)
   #define VARDBUG(...)         ulVARDBUG(__VA_ARGS__)
-  #define CRASH(...)           ulCRASH(__VA_ARGS__)
-  #define TRACE(...)           ulTRACE(__VA_ARGS__)
-  #define ENTER                ulENTER
+
+  #define BEGIN_FUNCTION       ulBEGIN_FUNCTION
   #define RETURN(x)            ulRETURN(x)
-  #define VOIDRETURN           ulVOIDRETURN
-  #define DIE(x,...)           ulDIE(x,__VA_ARGS__)
-  #define VOIDDIE(...)         ulVOIDDIE(__VA_ARGS__)
+  #define FAIL(x,...)          ulFAIL(x,__VA_ARGS__)
+  #define DIE(...)             ulDIE(__VA_ARGS__)
 
   #define free(...)            ulfree(__VA_ARGS__)
   #define memzero(...)         ulmemzero(__VA_ARGS__)
@@ -136,7 +134,7 @@
 #ifndef ulNEEDDBUG
 #define ulVARDBUG(x)   ((void)0)
 #else
-#define ulVARTRACE(x)                                                        \
+#define ulVARDBUG(x)                                                         \
                     _Pragma(PRAGMADIAGPUSH)                                  \
                     _Pragma(PRAGMADIAGFORMAT)                                \
                     _Generic((x),                                            \
@@ -174,17 +172,20 @@ unsigned long long: fprintf(stderr,"%s:%d %s=%llu\n",__FILE__,__LINE__,#x,x),\
                     _Pragma(PRAGMADIAGPOP)
 #endif
 
-#define ulCRASH(...) (\
-    fprintf(stderr, "CRASH: line %d (function %s)\n", __LINE__, __func__)  &&\
+#define ulDIE(...) (\
+    fprintf(stderr, "DIED: %s:%s() line %d: ",__FILE__,__func__,__LINE__)  &&\
     fprintf(stderr, __VA_ARGS__)                                           &&\
     fprintf(stderr, "\n\n\n")                                              &&\
     (exit(EXIT_FAILURE), 1)\
     )
 
+
+
+
 #ifdef ulNEEDTRACE
 static inline void ultrace(int x, const char *funcname) {
     static _Thread_local int spaces = 0;
-    if (x >= 0) {
+    if (x > 0) {
         fprintf(stderr,"%*cEntering %s()\n", spaces, ' ', funcname);
         spaces+=4;
     } else {
@@ -192,20 +193,16 @@ static inline void ultrace(int x, const char *funcname) {
         fprintf(stderr,"%*cExiting %s()\n",  spaces, ' ', funcname);
     }
 }
-#define ulTRACE(x)     ultrace(x, __func__)
-#define ulENTER        ulTRACE(1)
-#define ulRETURN(x)    do{                   ulTRACE(0); return x; }while(0)
-#define ulVOIDRETURN   do{                   ulTRACE(0); return;   }while(0)
-#define ulDIE(x,...)   do{ LOG(__VA_ARGS__); ulTRACE(0); return x; }while(0)
-#define ulVOIDDIE(...) do{ LOG(__VA_ARGS__); ulTRACE(0); return;   }while(0)
+#define ulTRACE(x)       ultrace(x, __func__)
 #else
-#define ulTRACE(x)     ((void)0)
-#define ulENTER        ((void)0)
-#define ulVOIDRETURN   do{                               return;   }while(0)
-#define ulRETURN(x)    do{                               return x; }while(0)
-#define ulVOIDDIE(...) do{ LOG(__VA_ARGS__);             return;   }while(0)
-#define ulDIE(x,...)   do{ LOG(__VA_ARGS__);             return x; }while(0)
+#define ulTRACE(x)       ((void)0)
 #endif
+
+#define ulBEGIN_FUNCTION ulTRACE(1);
+#define ulRETURN(x)      do { ulTRACE(0);         return x;    } while(0)
+#define ulFAIL(x,...)    do { ulLOG(__VA_ARGS__); ulRETURN(x); } while(0)
+
+
 
 
 
@@ -243,8 +240,6 @@ static inline void ulmemzerosecure(void *const p, const size_t z) {
 //===========================================================================
 #define ul__stridxnomatch(...)       strspn(__VA_ARGS__)
 #define ul__stridxmatch(...)         strcspn(__VA_ARGS__)
-#define ul__strspanmatch(...)        strspn(__VA_ARGS__)
-#define ul__strspannomatch(...)      strcspn(__VA_ARGS__)
 #define ul__strcharfirstptr(...)     strchr(__VA_ARGS__)
 #define ul__strcharlastptr(...)      strrchr(__VA_ARGS__)
 #define ul__strstrfirstptr(...)      strstr(__VA_ARGS__)
