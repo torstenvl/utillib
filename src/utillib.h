@@ -27,7 +27,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <limits.h>
-// #include <stdarg.h>
 
 // ---------------------------------------------------------------------------
 //        Compile-time constants controlling Utility Library behavior
