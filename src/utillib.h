@@ -135,42 +135,29 @@
 #ifndef ulNEEDDBUG
 #define ulVARDBUG(x)   ((void)0)
 #else
-#define ulVARDBUG(x)                                                         \
-                    _Pragma(PRAGMADIAGPUSH)                                  \
-                    _Pragma(PRAGMADIAGFORMAT)                                \
-                    _Generic((x),                                            \
-             _Bool: fprintf(stderr,"%s:%d %s=%s\n",                          \
-                                   __FILE__,__LINE__,#x,(x)?"true":"false"), \
-              char: fprintf(stderr,"%s:%d %s=%c\n",__FILE__,__LINE__,#x,x),  \
-       signed char: fprintf(stderr,"%s:%d %s=%c\n",__FILE__,__LINE__,#x,x),  \
-     unsigned char: fprintf(stderr,"%s:%d %s=%c\n",__FILE__,__LINE__,#x,x),  \
-               int: fprintf(stderr,"%s:%d %s=%d\n",__FILE__,__LINE__,#x,x),  \
-      unsigned int: fprintf(stderr,"%s:%d %s=%u\n",__FILE__,__LINE__,#x,x),  \
-              long: fprintf(stderr,"%s:%d %s=%ld\n",__FILE__,__LINE__,#x,x), \
-         long long: fprintf(stderr,"%s:%d %s=%lld\n",__FILE__,__LINE__,#x,x),\
-     unsigned long: fprintf(stderr,"%s:%d %s=%lu\n",__FILE__,__LINE__,#x,x), \
-unsigned long long: fprintf(stderr,"%s:%d %s=%llu\n",__FILE__,__LINE__,#x,x),\
-             float: fprintf(stderr,"%s:%d %s=%f\n",__FILE__,__LINE__,#x,x),  \
-            double: fprintf(stderr,"%s:%d %s=%f\n",__FILE__,__LINE__,#x,x),  \
-       long double: fprintf(stderr,"%s:%d %s=%f\n",__FILE__,__LINE__,#x,x),  \
-             char*: fprintf(stderr,(x)?"%s:%d %s=\"%s\"\n":"%s:%d %s=%s\n",  \
-                                       __FILE__,__LINE__,#x,x),              \
-      signed char*: fprintf(stderr,(x)?"%s:%d %s=\"%s\"\n":"%s:%d %s=%s\n",  \
-                                       __FILE__,__LINE__,#x,x),              \
-    unsigned char*: fprintf(stderr,(x)?"%s:%d %s=\"%s\"\n":"%s:%d %s=%s\n",  \
-                                       __FILE__,__LINE__,#x,x),              \
-           default: fprintf(stderr,"%s:%d %s is an unknown type; first four" \
-                                   "bytes are 0x%x 0x%x 0x%x 0x%x\n"         \
-                                   __FILE__,__LINE__,#x,                     \
-                                   (unsigned char)((unsigned char *)&x + 0), \
-                                   (unsigned char)((unsigned char *)&x + 1), \
-                                   (unsigned char)((unsigned char *)&x + 2), \
-                                   (unsigned char)((unsigned char *)&x + 3), \
-                                   (unsigned char)((unsigned char *)&x + 4), \
-                                   (unsigned char)((unsigned char *)&x + 5), \
-                                   (unsigned char)((unsigned char *)&x + 6), \
-                                   (unsigned char)((unsigned char *)&x + 7)) \
+#define ulVARDBUG(x)                                                                                                                     \
+                    _Pragma(PRAGMADIAGPUSH)                                                                                              \
+                    _Pragma(PRAGMADIAGFORMAT)                                                                                            \
+                    _Generic((x),                                                                                                        \
+              char: fprintf(stderr,"%s:%d %s=%c\n",   __FILE__, __LINE__, #x, x ),                                                       \
+       signed char: fprintf(stderr,"%s:%d %s=%c\n",   __FILE__, __LINE__, #x, x ),                                                       \
+     unsigned char: fprintf(stderr,"%s:%d %s=%c\n",   __FILE__, __LINE__, #x, x ),                                                       \
+               int: fprintf(stderr,"%s:%d %s=%d\n",   __FILE__, __LINE__, #x, x ),                                                       \
+      unsigned int: fprintf(stderr,"%s:%d %s=%u\n",   __FILE__, __LINE__, #x, x ),                                                       \
+              long: fprintf(stderr,"%s:%d %s=%ld\n",  __FILE__, __LINE__, #x, x ),                                                       \
+         long long: fprintf(stderr,"%s:%d %s=%lld\n", __FILE__, __LINE__, #x, x ),                                                       \
+     unsigned long: fprintf(stderr,"%s:%d %s=%lu\n",  __FILE__, __LINE__, #x, x ),                                                       \
+unsigned long long: fprintf(stderr,"%s:%d %s=%llu\n", __FILE__, __LINE__, #x, x ),                                                       \
+             float: fprintf(stderr,"%s:%d %s=%f\n",   __FILE__, __LINE__, #x, x ),                                                       \
+            double: fprintf(stderr,"%s:%d %s=%f\n",   __FILE__, __LINE__, #x, x ),                                                       \
+       long double: fprintf(stderr,"%s:%d %s=%f\n",   __FILE__, __LINE__, #x, x ),                                                       \
+             _Bool: fprintf(stderr,"%s:%d %s=%s\n",                               __FILE__, __LINE__, #x, (x)?"true":"false"),           \
+             char*: fprintf(stderr,(x)?"%s:%d %s=\"%s\"\n":"%s:%d %s=NULL\n",     __FILE__, __LINE__, #x                    ),           \
+      signed char*: fprintf(stderr,(x)?"%s:%d %s=\"%s\"\n":"%s:%d %s=NULL\n",     __FILE__, __LINE__, #x                    ),           \
+    unsigned char*: fprintf(stderr,(x)?"%s:%d %s=\"%s\"\n":"%s:%d %s=NULL\n",     __FILE__, __LINE__, #x                    ),           \
+           default: fprintf(stderr,"%s:%d first byte of %s (unk type) is 0x%x\n", __FILE__, __LINE__, #x, (int)(*((unsigned char *)&x))) \
                     _Pragma(PRAGMADIAGPOP)
+
 #endif
 
 #define ulDIE(...) (\
